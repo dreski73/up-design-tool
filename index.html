@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Design Tool</title>
+</head>
+<body>
+  <div id="container">
+    <h1>UP DESIGN TOOL</h1>
+    <div id="palette" class="frame">
+      <h2>COLORS</h2>
+      <div id="colors" class="sortable"></div>
+      <div id="addColorBox" class="color-box">+</div>
+      <div id="randomizeColorsBox" class="color-box">R</div>
+    </div>
+    <button id="savePalette">Save Palette</button>
+    <input type="text" id="paletteName" placeholder="Palette Name">
+    <div id="savedPalettesContainer" class="frame">
+      <h2>Saved Palettes</h2>
+      <div id="savedPalettes"></div>
+    </div>
+    <div id="savedDesignsContainer" class="frame">
+      <h2>Saved Designs</h2>
+      <div id="savedDesigns"></div>
+    </div>
+    <canvas id="patternCanvas" width="200" height="200"></canvas>
+  </div>
+  <script src="main.js"></script>
+</body>
+</html>
