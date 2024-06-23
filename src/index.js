@@ -1,4 +1,9 @@
-// src/index.js
 import './styles.css';
 import { run } from './app';
-document.addEventListener('DOMContentLoaded', run);
+
+if (!window.__appInitialized) {
+  window.__appInitialized = true;
+  document.addEventListener('DOMContentLoaded', () => {
+    run();
+  });
+}

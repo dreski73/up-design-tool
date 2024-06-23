@@ -1,10 +1,15 @@
 import { currentPalette, updatePaletteDisplay, lockedColors } from './paletteManager';
 
 let selectedColorIndex = null;
+let tempColorPicker = null;
 
 export function initializeColorPicker() {
-  // No need to initialize anything specific for the native color picker
   console.log('Native color picker initialized');
+  tempColorPicker = document.createElement('input');
+  tempColorPicker.type = 'color';
+  tempColorPicker.style.position = 'absolute';
+  tempColorPicker.style.opacity = 0;
+  document.body.appendChild(tempColorPicker);
 }
 
 export function setSelectedColorIndex(index) {
@@ -13,34 +18,31 @@ export function setSelectedColorIndex(index) {
 
 export function attachColorPickerListeners() {
   document.querySelectorAll('.color-box').forEach((box, index) => {
-    console.log(`Attaching event listener to color box ${index}`);
-    box.addEventListener('click', () => {
-      if (!lockedColors[index]) {
-        console.log(`Color box ${index} clicked`);
-        selectedColorIndex = index;
-
-        // Create a temporary color input element to use the native color picker
-        const tempColorPicker = document.createElement('input');
-        tempColorPicker.type = 'color';
-        tempColorPicker.value = currentPalette[index]; // Set the picker to the current color
-        tempColorPicker.style.position = 'absolute';
-        tempColorPicker.style.opacity = 0; // Hide the element but keep it clickable
-        document.body.appendChild(tempColorPicker);
-
-        tempColorPicker.click(); // Programmatically trigger the color picker
-
-        tempColorPicker.addEventListener('input', () => {
-          const color = tempColorPicker.value;
-          console.log(`Color changed to: ${color}`);
-          currentPalette[selectedColorIndex] = color;
-          updatePaletteDisplay();
-        });
-
-        // Remove the temporary element once the color picker closes
-        tempColorPicker.addEventListener('change', () => {
-          document.body.removeChild(tempColorPicker);
-        });
-      }
-    });
+    // Remove existing event listeners before adding new ones
+    box.removeEventListener('click', onColorBoxClick);
+    box.addEventListener('click', onColorBoxClick);
   });
+}
+
+function onColorBoxClick(e) {
+  e.stopPropagation();
+  const index = [...document.querySelectorAll('.color-box')].indexOf(e.currentTarget);
+  if (!lockedColors[index]) {
+    selectedColorIndex = index;
+    tempColorPicker.value = currentPalette[index];
+    tempColorPicker.click();
+    tempColorPicker.addEventListener('input', onColorChange);
+    tempColorPicker.addEventListener('change', onColorPickerChange);
+  }
+}
+
+function onColorChange() {
+  const color = tempColorPicker.value;
+  currentPalette[selectedColorIndex] = color;
+  updatePaletteDisplay();
+}
+
+function onColorPickerChange() {
+  document.body.removeChild(tempColorPicker);
+  tempColorPicker = null;
 }

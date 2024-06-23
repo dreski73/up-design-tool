@@ -84,7 +84,7 @@ button:hover {
   align-items: center; /* Ensure the buttons are aligned with the color boxes */
 }
 
-#addColorBox, #randomizeColorsBox {
+.special-button {
   width: 60px;
   height: 60px;
   display: inline-block;
@@ -98,4 +98,69 @@ button:hover {
   font-size: 24px;
   color: #000000;
   background-color: #d3d3d3; /* Match button style */
+}
+
+.saved-palette {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.saved-palette .delete-button {
+  width: 60px;
+  height: 60px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #d3d3d3;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #000000;
+  margin-left: 5px;
+}
+
+.saved-palette .delete-button:hover {
+  background-color: #bbbbbb;
+}
+
+.shape-layer {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.shape-layer span {
+  margin-right: 10px;
+}
+
+.shape-layer select, .shape-layer input[type="range"], .shape-layer button {
+  margin: 0 5px;
+}
+
+.shape-layer button {
+  background-color: #d3d3d3;
+  border: none;
+  cursor: pointer;
+}
+
+.shape-layer button:hover {
+  background-color: #bbbbbb;
+}
+
+.saved-design {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.saved-design button {
+  margin-left: 10px;
+  background-color: #d3d3d3;
+  border: none;
+  cursor: pointer;
+}
+
+.saved-design button:hover {
+  background-color: #bbbbbb;
 }

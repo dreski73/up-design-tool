@@ -38,19 +38,12 @@ export function randomizeColors() {
 }
 
 export function savePalette() {
-  console.log('savePalette called');
   const paletteName = document.getElementById('paletteName').value || 'Untitled';
   const savedPalettes = JSON.parse(localStorage.getItem('savedPalettes')) || [];
 
-  console.log('Before saving:', savedPalettes);
-
   savedPalettes.push({ name: paletteName, colors: currentPalette.slice() });
   localStorage.setItem('savedPalettes', JSON.stringify(savedPalettes));
-
-  console.log('After saving:', savedPalettes);
-
   updateSavedPalettes();
-  console.log('savePalette finished');
 }
 
 function getRandomColor() {
@@ -67,10 +60,8 @@ export function updatePaletteDisplay() {
   paletteContainer.innerHTML = '';
 
   currentPalette.forEach((color, index) => {
-    console.log(`Updating color box ${index} to ${color}`); // Log the updated color
     const colorBox = document.createElement('div');
     colorBox.style.backgroundColor = color;
-    console.log(`Color box ${index} background color set to ${color}`); // Additional log
     colorBox.classList.add('color-box');
     if (lockedColors[index]) {
       colorBox.classList.add('locked');
@@ -101,7 +92,7 @@ export function updatePaletteDisplay() {
     paletteContainer.appendChild(colorBox);
   });
 
-  attachColorPickerListeners(); // Attach listeners to the new color boxes
+  attachColorPickerListeners();
 }
 
 export function updateSavedPalettes() {
@@ -109,8 +100,6 @@ export function updateSavedPalettes() {
   savedPalettesContainer.innerHTML = '';
 
   const savedPalettes = JSON.parse(localStorage.getItem('savedPalettes')) || [];
-
-  console.log('Updating saved palettes:', savedPalettes);
 
   savedPalettes.forEach((palette, index) => {
     const paletteElement = document.createElement('div');
@@ -155,3 +144,8 @@ function loadPalette(palette) {
   currentPalette = palette.colors.slice();
   updatePaletteDisplay();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  updatePaletteDisplay();
+  updateSavedPalettes();
+});

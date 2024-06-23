@@ -14,7 +14,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Open index.html",
-            "file": "/Users/dreurhahn/Documents/up-design-tool/index.html"
+            "file": "${workspaceFolder}/index.html"
         }
     ]
 }

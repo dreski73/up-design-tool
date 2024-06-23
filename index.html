@@ -11,21 +11,38 @@
     <h1>UP DESIGN TOOL</h1>
     <div id="palette" class="frame">
       <h2>COLORS</h2>
-      <div id="colors" class="sortable"></div>
-      <div id="addColorBox" class="color-box">+</div>
-      <div id="randomizeColorsBox" class="color-box">R</div>
+      <div style="display: flex; align-items: center;">
+        <div id="colors" class="sortable" style="flex-grow: 1;"></div>
+        <div id="addColorButton" class="special-button">+</div>
+        <div id="randomizeButton" class="special-button">R</div>
+      </div>
     </div>
-    <button id="savePalette">Save Palette</button>
-    <input type="text" id="paletteName" placeholder="Palette Name">
+    <div id="savePaletteFrame" class="frame">
+      <input type="text" id="paletteName" placeholder="Palette Name">
+      <button id="savePalette">Save Palette</button>
+    </div>
     <div id="savedPalettesContainer" class="frame">
-      <h2>Saved Palettes</h2>
+      <h2>PALETTES</h2>
       <div id="savedPalettes"></div>
+    </div>
+    <div id="designToolFrame" class="frame">
+      <h2>Design Tool</h2>
+      <canvas id="designCanvas" width="400" height="400" style="background-color: lightgray; background-image: linear-gradient(to right, gray 1px, transparent 1px), linear-gradient(to bottom, gray 1px, transparent 1px); background-size: 10px 10px;"></canvas>
+      <div>
+        <button id="addSquare">Add Square</button>
+        <button id="addCircle">Add Circle</button>
+      </div>
+      <div id="shapeLayerList"></div>
+      <button id="saveDesign">Save Design</button>
     </div>
     <div id="savedDesignsContainer" class="frame">
       <h2>Saved Designs</h2>
       <div id="savedDesigns"></div>
     </div>
-    <canvas id="patternCanvas" width="200" height="200"></canvas>
+    <div id="savedDesignsContainer" class="frame">
+      <h2>Saved Designs</h2>
+      <div id="savedDesigns"></div>
+    </div>
   </div>
   <script src="main.js"></script>
 </body>
