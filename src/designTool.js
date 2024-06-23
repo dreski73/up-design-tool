@@ -8,7 +8,7 @@ export function initializeDesignTool() {
   let colorIndex = 0;
 
   function drawShape(shape) {
-    const { type, x, y, outerRadius, innerRadius, color, radials, lineThickness, radialColor, rotation } = shape;
+    const { type, x, y, outerRadius, innerRadius, color, radials, radialColor, rotation } = shape;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(rotation * Math.PI / 180);
@@ -22,28 +22,39 @@ export function initializeDesignTool() {
       ctx.rect(-outerRadius, -outerRadius, 2 * outerRadius, 2 * outerRadius);
       ctx.moveTo(-innerRadius, -innerRadius);
       ctx.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius);
-    }
-    ctx.fill('evenodd');
+    } else if (type === 'radialOutline') {
+      if (radials === 0) {
+        // Draw the default radial outline shape with a single color
+        ctx.arc(0, 0, outerRadius, 0, 2 * Math.PI);
+        ctx.moveTo(innerRadius, 0);
+        ctx.arc(0, 0, innerRadius, 0, 2 * Math.PI, true);
+      } else {
+        // Draw radial outline shape with circular borders
+        for (let i = 0; i < radials; i++) {
+          const angle = (i * 2 * Math.PI) / radials;
+          const nextAngle = ((i + 1) * 2 * Math.PI) / radials;
+          const outerX = outerRadius * Math.cos(angle);
+          const outerY = outerRadius * Math.sin(angle);
+          const nextOuterX = outerRadius * Math.cos(nextAngle);
+          const nextOuterY = outerRadius * Math.sin(nextAngle);
+          const innerX = innerRadius * Math.cos(angle);
+          const innerY = innerRadius * Math.sin(angle);
+          const nextInnerX = innerRadius * Math.cos(nextAngle);
+          const nextInnerY = innerRadius * Math.sin(nextAngle);
 
-    // Draw radial array
-    if (radials > 0) {
-      ctx.strokeStyle = radialColor;
-      // Calculate maximum line thickness based on radials
-      const maxThickness = 40 / radials;
-      ctx.lineWidth = (lineThickness / 100) * 40; // Convert percentage to thickness
-      for (let i = 0; i < radials; i++) {
-        const angle = (i * 2 * Math.PI) / radials;
-        const outerX = outerRadius * Math.cos(angle);
-        const outerY = outerRadius * Math.sin(angle);
-        const innerX = innerRadius * Math.cos(angle);
-        const innerY = innerRadius * Math.sin(angle);
-        ctx.beginPath();
-        ctx.moveTo(innerX, innerY);
-        ctx.lineTo(outerX, outerY);
-        ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(innerX, innerY);
+          ctx.lineTo(outerX, outerY);
+          ctx.arc(0, 0, outerRadius, angle, nextAngle);
+          ctx.lineTo(nextInnerX, nextInnerY);
+          ctx.arc(0, 0, innerRadius, nextAngle, angle, true);
+          ctx.closePath();
+          ctx.fillStyle = i % 2 === 0 ? color : radialColor;
+          ctx.fill();
+        }
       }
     }
-
+    ctx.fill('evenodd');
     ctx.restore();
   }
 
@@ -58,8 +69,7 @@ export function initializeDesignTool() {
       outerRadius: 150,
       innerRadius: 100,
       color,
-      radials: 0,
-      lineThickness: 10, // Start with 10% thickness
+      radials: 0, // Default radials to 0
       radialColor,
       rotation: 0 // Initial rotation
     };
@@ -74,7 +84,7 @@ export function initializeDesignTool() {
     layer.classList.add('shape-layer');
 
     const icon = document.createElement('span');
-    icon.textContent = shape.type === 'circle' ? '○' : '□';
+    icon.textContent = shape.type === 'circle' ? '○' : (shape.type === 'square' ? '□' : '⨁');
     icon.style.color = shape.color;
     layer.appendChild(icon);
 
@@ -92,16 +102,8 @@ export function initializeDesignTool() {
     });
     layer.appendChild(colorSelect);
 
-    const outerRadiusSlider = document.createElement('input');
-    outerRadiusSlider.type = 'range';
-    outerRadiusSlider.min = 0;
-    outerRadiusSlider.max = 100;
-    outerRadiusSlider.value = shape.outerRadius / 2.5;
-    outerRadiusSlider.addEventListener('input', (e) => {
-      shape.outerRadius = e.target.value * 2.5;
-      redrawShapes();
-    });
-    layer.appendChild(outerRadiusSlider);
+    const sliderContainer = document.createElement('div');
+    sliderContainer.classList.add('range-slider');
 
     const innerRadiusSlider = document.createElement('input');
     innerRadiusSlider.type = 'range';
@@ -112,44 +114,32 @@ export function initializeDesignTool() {
       shape.innerRadius = e.target.value * 2.5;
       redrawShapes();
     });
-    layer.appendChild(innerRadiusSlider);
+    sliderContainer.appendChild(innerRadiusSlider);
+
+    const outerRadiusSlider = document.createElement('input');
+    outerRadiusSlider.type = 'range';
+    outerRadiusSlider.min = 0;
+    outerRadiusSlider.max = 100;
+    outerRadiusSlider.value = shape.outerRadius / 2.5;
+    outerRadiusSlider.addEventListener('input', (e) => {
+      shape.outerRadius = e.target.value * 2.5;
+      redrawShapes();
+    });
+    sliderContainer.appendChild(outerRadiusSlider);
+
+    layer.appendChild(sliderContainer);
 
     const radialsSlider = document.createElement('input');
     radialsSlider.type = 'range';
     radialsSlider.min = 0;
-    radialsSlider.max = 5;
+    radialsSlider.max = 6;
     radialsSlider.value = shape.radials;
     radialsSlider.addEventListener('input', (e) => {
-      const values = [4, 8, 16, 32, 64, 128];
+      const values = [0, 4, 8, 16, 32, 64, 128];
       shape.radials = values[e.target.value];
       redrawShapes();
     });
     layer.appendChild(radialsSlider);
-
-    /*
-    // Original code for even number increments
-    const radialsSlider = document.createElement('input');
-    radialsSlider.type = 'range';
-    radialsSlider.min = 0;
-    radialsSlider.max = 50;
-    radialsSlider.value = shape.radials;
-    radialsSlider.addEventListener('input', (e) => {
-      shape.radials = Math.round(e.target.value / 2) * 2; // Ensure even numbers
-      redrawShapes();
-    });
-    layer.appendChild(radialsSlider);
-    */
-
-    const lineThicknessSlider = document.createElement('input');
-    lineThicknessSlider.type = 'range';
-    lineThicknessSlider.min = 0;
-    lineThicknessSlider.max = 100;
-    lineThicknessSlider.value = shape.lineThickness;
-    lineThicknessSlider.addEventListener('input', (e) => {
-      shape.lineThickness = e.target.value;
-      redrawShapes();
-    });
-    layer.appendChild(lineThicknessSlider);
 
     const radialColorSelect = document.createElement('select');
     colors.forEach(color => {
@@ -246,6 +236,7 @@ export function initializeDesignTool() {
   if (!eventListenersAdded) {
     document.getElementById('addSquare').addEventListener('click', () => addShape('square'));
     document.getElementById('addCircle').addEventListener('click', () => addShape('circle'));
+    document.getElementById('addRadialOutline').addEventListener('click', () => addShape('radialOutline')); // New Shape Event Listener
     document.getElementById('saveDesign').addEventListener('click', saveDesign);
     eventListenersAdded = true;
   }
