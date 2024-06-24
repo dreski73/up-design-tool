@@ -1,4 +1,5 @@
 import { attachColorPickerListeners } from './colorPicker';
+import { changePalette } from './designTool'; // Import changePalette
 
 export let currentPalette = [
   '#FF0000', // Red
@@ -15,11 +16,13 @@ export function addColor() {
   currentPalette.push(newColor);
   lockedColors.push(false);
   updatePaletteDisplay();
+  changePalette(currentPalette); // Update the design tool
 }
 
 export function lockColor(index) {
   lockedColors[index] = !lockedColors[index];
   updatePaletteDisplay();
+  changePalette(currentPalette); // Update the design tool
 }
 
 export function deleteColor(index) {
@@ -27,6 +30,7 @@ export function deleteColor(index) {
     currentPalette.splice(index, 1);
     lockedColors.splice(index, 1);
     updatePaletteDisplay();
+    changePalette(currentPalette); // Update the design tool
   }
 }
 
@@ -35,6 +39,7 @@ export function randomizeColors() {
     return lockedColors[index] ? color : getRandomColor();
   });
   updatePaletteDisplay();
+  changePalette(currentPalette); // Update the design tool
 }
 
 export function savePalette() {
@@ -143,6 +148,7 @@ function deletePalette(index) {
 function loadPalette(palette) {
   currentPalette = palette.colors.slice();
   updatePaletteDisplay();
+  changePalette(currentPalette); // Update the design tool
 }
 
 document.addEventListener('DOMContentLoaded', () => {

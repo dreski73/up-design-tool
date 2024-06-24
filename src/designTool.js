@@ -1,10 +1,22 @@
+import { currentPalette } from './paletteManager'; // Import currentPalette
+
 let eventListenersAdded = false;
+
+function updatePalette(newPaletteColors) {
+  currentPalette.length = 0;
+  newPaletteColors.forEach(color => currentPalette.push(color));
+  shapes.forEach((shape, index) => {
+    shape.color = currentPalette[index % currentPalette.length];
+    shape.radialColor = currentPalette[(index + 1) % currentPalette.length];
+  });
+  redrawShapes();
+  updateShapeLayerList();
+}
 
 export function initializeDesignTool() {
   const designCanvas = document.getElementById('designCanvas');
   const ctx = designCanvas.getContext('2d');
   let shapes = [];
-  const colors = ['#FF0000', '#0000FF', '#008000', '#FFFF00', '#FFA500'];
   let colorIndex = 0;
 
   function drawShape(shape) {
@@ -16,20 +28,24 @@ export function initializeDesignTool() {
     ctx.beginPath();
     if (type === 'circle') {
       ctx.arc(0, 0, outerRadius, 0, 2 * Math.PI);
-      ctx.moveTo(innerRadius, 0);
-      ctx.arc(0, 0, innerRadius, 0, 2 * Math.PI, true);
-    } else if (type === 'square') {
-      ctx.rect(-outerRadius, -outerRadius, 2 * outerRadius, 2 * outerRadius);
-      ctx.moveTo(-innerRadius, -innerRadius);
-      ctx.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius);
-    } else if (type === 'radialOutline') {
-      if (radials === 0) {
-        // Draw the default radial outline shape with a single color
-        ctx.arc(0, 0, outerRadius, 0, 2 * Math.PI);
+      if (innerRadius > 0) {
         ctx.moveTo(innerRadius, 0);
         ctx.arc(0, 0, innerRadius, 0, 2 * Math.PI, true);
+      }
+    } else if (type === 'square') {
+      ctx.rect(-outerRadius, -outerRadius, 2 * outerRadius, 2 * outerRadius);
+      if (innerRadius > 0) {
+        ctx.moveTo(-innerRadius, -innerRadius);
+        ctx.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius);
+      }
+    } else if (type === 'radialOutline') {
+      if (radials === 0) {
+        ctx.arc(0, 0, outerRadius, 0, 2 * Math.PI);
+        if (innerRadius > 0) {
+          ctx.moveTo(innerRadius, 0);
+          ctx.arc(0, 0, innerRadius, 0, 2 * Math.PI, true);
+        }
       } else {
-        // Draw radial outline shape with circular borders
         for (let i = 0; i < radials; i++) {
           const angle = (i * 2 * Math.PI) / radials;
           const nextAngle = ((i + 1) * 2 * Math.PI) / radials;
@@ -59,23 +75,45 @@ export function initializeDesignTool() {
   }
 
   function addShape(type) {
-    const color = colors[colorIndex % colors.length];
-    const radialColor = colors[(colorIndex + 1) % colors.length];
+    const color = currentPalette[colorIndex % currentPalette.length];
+    const radialColor = currentPalette[(colorIndex + 1) % currentPalette.length];
     colorIndex++;
+    const shapeCount = shapes.length;
+    const outerRadius = 500 * Math.pow(0.75, shapeCount);
     const shape = {
       type,
       x: designCanvas.width / 2,
       y: designCanvas.height / 2,
-      outerRadius: 150,
-      innerRadius: 100,
+      outerRadius: outerRadius,
+      innerRadius: 0,
       color,
-      radials: 0, // Default radials to 0
+      radials: 0,
       radialColor,
-      rotation: 0 // Initial rotation
+      rotation: 0
     };
     shapes.push(shape);
     drawShape(shape);
     addShapeLayer(shape);
+  }
+
+  function toggleRotation(shape) {
+    shape.rotation = shape.rotation === 45 ? 0 : 45;
+    redrawShapes();
+  }
+  function shuffleColors() {
+    shapes.forEach(shape => {
+      let newColor, newRadialColor;
+      do {
+        newColor = currentPalette[Math.floor(Math.random() * currentPalette.length)];
+      } while (newColor === shape.radialColor);
+      do {
+        newRadialColor = currentPalette[Math.floor(Math.random() * currentPalette.length)];
+      } while (newRadialColor === newColor);
+      shape.color = newColor;
+      shape.radialColor = newRadialColor;
+    });
+    redrawShapes();
+    updateShapeLayerList();
   }
 
   function addShapeLayer(shape) {
@@ -89,7 +127,7 @@ export function initializeDesignTool() {
     layer.appendChild(icon);
 
     const colorSelect = document.createElement('select');
-    colors.forEach(color => {
+    currentPalette.forEach(color => {
       const option = document.createElement('option');
       option.value = color;
       option.textContent = color;
@@ -103,15 +141,15 @@ export function initializeDesignTool() {
     layer.appendChild(colorSelect);
 
     const sliderContainer = document.createElement('div');
-    sliderContainer.classList.add('range-slider');
+    sliderContainer.classList.add('slider-container');
 
     const innerRadiusSlider = document.createElement('input');
     innerRadiusSlider.type = 'range';
     innerRadiusSlider.min = 0;
     innerRadiusSlider.max = 100;
-    innerRadiusSlider.value = shape.innerRadius / 2.5;
+    innerRadiusSlider.value = shape.innerRadius / 5;
     innerRadiusSlider.addEventListener('input', (e) => {
-      shape.innerRadius = e.target.value * 2.5;
+      shape.innerRadius = e.target.value * 5;
       redrawShapes();
     });
     sliderContainer.appendChild(innerRadiusSlider);
@@ -120,9 +158,9 @@ export function initializeDesignTool() {
     outerRadiusSlider.type = 'range';
     outerRadiusSlider.min = 0;
     outerRadiusSlider.max = 100;
-    outerRadiusSlider.value = shape.outerRadius / 2.5;
+    outerRadiusSlider.value = shape.outerRadius / 5;
     outerRadiusSlider.addEventListener('input', (e) => {
-      shape.outerRadius = e.target.value * 2.5;
+      shape.outerRadius = e.target.value * 5;
       redrawShapes();
     });
     sliderContainer.appendChild(outerRadiusSlider);
@@ -142,7 +180,7 @@ export function initializeDesignTool() {
     layer.appendChild(radialsSlider);
 
     const radialColorSelect = document.createElement('select');
-    colors.forEach(color => {
+    currentPalette.forEach(color => {
       const option = document.createElement('option');
       option.value = color;
       option.textContent = color;
@@ -155,19 +193,16 @@ export function initializeDesignTool() {
     });
     layer.appendChild(radialColorSelect);
 
-    const rotationSlider = document.createElement('input');
-    rotationSlider.type = 'range';
-    rotationSlider.min = 0;
-    rotationSlider.max = 360;
-    rotationSlider.value = shape.rotation;
-    rotationSlider.addEventListener('input', (e) => {
-      shape.rotation = e.target.value;
-      redrawShapes();
-    });
-    layer.appendChild(rotationSlider);
+    if (shape.type === 'square') {
+      const rotateButton = document.createElement('button');
+      rotateButton.textContent = '45°';
+      rotateButton.addEventListener('click', () => toggleRotation(shape));
+      layer.appendChild(rotateButton);
+    }
 
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'X';
+    deleteButton.style.fontSize = '10px'; // Decrease size of the X button
     deleteButton.addEventListener('click', () => {
       shapes = shapes.filter(s => s !== shape);
       layer.remove();
@@ -181,6 +216,12 @@ export function initializeDesignTool() {
   function redrawShapes() {
     ctx.clearRect(0, 0, designCanvas.width, designCanvas.height);
     shapes.forEach(drawShape);
+  }
+
+  function resetCanvas() {
+    shapes = [];
+    ctx.clearRect(0, 0, designCanvas.width, designCanvas.height);
+    document.getElementById('shapeLayerList').innerHTML = '';
   }
 
   function saveDesign() {
@@ -236,11 +277,17 @@ export function initializeDesignTool() {
   if (!eventListenersAdded) {
     document.getElementById('addSquare').addEventListener('click', () => addShape('square'));
     document.getElementById('addCircle').addEventListener('click', () => addShape('circle'));
-    document.getElementById('addRadialOutline').addEventListener('click', () => addShape('radialOutline')); // New Shape Event Listener
+    document.getElementById('addRadial').addEventListener('click', () => addShape('radialOutline'));
+    document.getElementById('shuffleColors').addEventListener('click', shuffleColors);
+    document.getElementById('resetCanvas').addEventListener('click', resetCanvas);
     document.getElementById('saveDesign').addEventListener('click', saveDesign);
     eventListenersAdded = true;
   }
 
   updateSavedDesigns();
   console.log('Design tool initialized');
+}
+
+export function changePalette(newPaletteColors) {
+  updatePalette(newPaletteColors);
 }
