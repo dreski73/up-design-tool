@@ -1,4 +1,4 @@
-import { generateRandomColor, clamp } from './utils.js';
+import { generateRandomColor } from './utils.js';
 import PatternMaker from './patternMaker.js';
 import ShapeLayerList from './shapeLayerList.js';
 
@@ -49,9 +49,7 @@ export default class DesignTool {
         const centerY = this.canvas.height / 2;
         const maxSize = Math.min(this.canvas.width, this.canvas.height) * 0.9;
         const colorId = this.paletteManager.getNextColorId();
-
-        // Calculate the size decrement based on the number of existing shapes
-        const sizeDecrement = 0.1; // 10% decrease for each new shape
+        const sizeDecrement = 0.1;
         const shapeCount = this.shapes.length;
         const outerRadius = (maxSize / 2) * Math.max(0.3, 1 - (shapeCount * sizeDecrement));
 
@@ -68,8 +66,7 @@ export default class DesignTool {
             radialLines: type === 'circle' ? 0 : undefined,
             secondColorId: type === 'circle' ? this.paletteManager.getNextColorId() : undefined
         };
-
-        this.shapes.unshift(shape);  // Add new shape to the beginning of the array
+        this.shapes.unshift(shape);
         this.shapeLayerList.addLayer(shape);
         this.drawShapes();
         this.dispatchEvent(new CustomEvent('shapesChanged'));
@@ -79,8 +76,6 @@ export default class DesignTool {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawGrid();
         this.drawFrame();
-
-        // Iterate through the shapes array in reverse order
         for (let i = this.shapes.length - 1; i >= 0; i--) {
             const shape = this.shapes[i];
             this.ctx.save();

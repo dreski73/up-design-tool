@@ -20,153 +20,151 @@ export default class PatternMaker {
   drawPattern() {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       const colors = this.paletteManager.getCurrentPalette().slice(0, 3);
-      switch (this.currentPattern) {
+      this.drawPatternWithColors(this.ctx, colors, this.currentPattern);
+  }
+
+  drawPatternWithColors(ctx, colors, pattern) {
+      switch (pattern) {
           case 'zigzag':
-              this.drawZigzag(colors);
+              this.drawZigzag(ctx, colors);
               break;
           case 'stripes':
-              this.drawStripes(colors);
+              this.drawStripes(ctx, colors);
               break;
           case 'herringbone':
-              this.drawHerringbone(colors);
+              this.drawHerringbone(ctx, colors);
               break;
           case 'chevron':
-              this.drawChevron(colors);
+              this.drawChevron(ctx, colors);
               break;
           case 'alternatingSquares':
-              this.drawAlternatingSquares(colors);
+              this.drawAlternatingSquares(ctx, colors);
               break;
           case 'checkerboard':
-              this.drawCheckerboard(colors);
+              this.drawCheckerboard(ctx, colors);
               break;
           case 'isometricCubes':
-              this.drawIsometricCubes(colors);
+              this.drawIsometricCubes(ctx, colors);
               break;
       }
   }
 
-  drawZigzag(colors) {
+  drawZigzag(ctx, colors) {
       const lineWidth = 5;
       const amplitude = 20;
       const period = 40;
-
-      this.ctx.lineWidth = lineWidth;
-
+      ctx.lineWidth = lineWidth;
       for (let i = 0; i < colors.length; i++) {
-          this.ctx.beginPath();
-          this.ctx.strokeStyle = colors[i];
-          for (let x = 0; x <= this.canvas.width; x += period) {
-              this.ctx.lineTo(x, amplitude * Math.sin((x + i * period / 3) / period * Math.PI * 2) + this.canvas.height / 2);
+          ctx.beginPath();
+          ctx.strokeStyle = colors[i];
+          for (let x = 0; x <= ctx.canvas.width; x += period) {
+              ctx.lineTo(x, amplitude * Math.sin((x + i * period / 3) / period * Math.PI * 2) + ctx.canvas.height / 2);
           }
-          this.ctx.stroke();
+          ctx.stroke();
       }
   }
 
-  drawStripes(colors) {
+  drawStripes(ctx, colors) {
       const stripeWidth = 20;
-
-      for (let i = 0; i < this.canvas.width; i += stripeWidth * colors.length) {
+      for (let i = 0; i < ctx.canvas.width; i += stripeWidth * colors.length) {
           colors.forEach((color, index) => {
-              this.ctx.fillStyle = color;
-              this.ctx.fillRect(i + index * stripeWidth, 0, stripeWidth, this.canvas.height);
+              ctx.fillStyle = color;
+              ctx.fillRect(i + index * stripeWidth, 0, stripeWidth, ctx.canvas.height);
           });
       }
   }
 
-  drawHerringbone(colors) {
+  drawHerringbone(ctx, colors) {
       const size = 20;
       const halfSize = size / 2;
-
-      for (let y = 0; y < this.canvas.height; y += size) {
-          for (let x = 0; x < this.canvas.width; x += size) {
-              this.ctx.fillStyle = colors[Math.floor((x + y) / size) % colors.length];
-              this.ctx.beginPath();
-              this.ctx.moveTo(x, y);
-              this.ctx.lineTo(x + halfSize, y + size);
-              this.ctx.lineTo(x + size, y + size);
-              this.ctx.lineTo(x + halfSize, y);
-              this.ctx.closePath();
-              this.ctx.fill();
+      for (let y = 0; y < ctx.canvas.height; y += size) {
+          for (let x = 0; x < ctx.canvas.width; x += size) {
+              ctx.fillStyle = colors[Math.floor((x + y) / size) % colors.length];
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + halfSize, y + size);
+              ctx.lineTo(x + size, y + size);
+              ctx.lineTo(x + halfSize, y);
+              ctx.closePath();
+              ctx.fill();
           }
       }
   }
 
-  drawChevron(colors) {
+  drawChevron(ctx, colors) {
       const size = 20;
       const halfSize = size / 2;
-
-      for (let y = 0; y < this.canvas.height; y += size) {
-          for (let x = 0; x < this.canvas.width; x += size) {
-              this.ctx.fillStyle = colors[Math.floor(y / size) % colors.length];
-              this.ctx.beginPath();
-              this.ctx.moveTo(x, y + size);
-              this.ctx.lineTo(x + halfSize, y);
-              this.ctx.lineTo(x + size, y + size);
-              this.ctx.closePath();
-              this.ctx.fill();
+      for (let y = 0; y < ctx.canvas.height; y += size) {
+          for (let x = 0; x < ctx.canvas.width; x += size) {
+              ctx.fillStyle = colors[Math.floor(y / size) % colors.length];
+              ctx.beginPath();
+              ctx.moveTo(x, y + size);
+              ctx.lineTo(x + halfSize, y);
+              ctx.lineTo(x + size, y + size);
+              ctx.closePath();
+              ctx.fill();
           }
       }
   }
 
-  drawAlternatingSquares(colors) {
+  drawAlternatingSquares(ctx, colors) {
       const size = 20;
-
-      for (let y = 0; y < this.canvas.height; y += size) {
-          for (let x = 0; x < this.canvas.width; x += size) {
-              this.ctx.fillStyle = colors[(Math.floor(x / size) + Math.floor(y / size)) % colors.length];
-              this.ctx.fillRect(x, y, size, size);
+      for (let y = 0; y < ctx.canvas.height; y += size) {
+          for (let x = 0; x < ctx.canvas.width; x += size) {
+              ctx.fillStyle = colors[(Math.floor(x / size) + Math.floor(y / size)) % colors.length];
+              ctx.fillRect(x, y, size, size);
           }
       }
   }
 
-  drawCheckerboard(colors) {
+  drawCheckerboard(ctx, colors) {
       const size = 20;
-
-      for (let y = 0; y < this.canvas.height; y += size) {
-          for (let x = 0; x < this.canvas.width; x += size) {
-              this.ctx.fillStyle = colors[(Math.floor(x / size) + Math.floor(y / size)) % 2];
-              this.ctx.fillRect(x, y, size, size);
+      for (let y = 0; y < ctx.canvas.height; y += size) {
+          for (let x = 0; x < ctx.canvas.width; x += size) {
+              ctx.fillStyle = colors[(Math.floor(x / size) + Math.floor(y / size)) % 2];
+              ctx.fillRect(x, y, size, size);
           }
       }
   }
 
-  drawIsometricCubes(colors) {
+  drawIsometricCubes(ctx, colors) {
       const size = 20;
       const halfSize = size / 2;
-
-      for (let y = 0; y < this.canvas.height + size; y += size * 1.5) {
-          for (let x = 0; x < this.canvas.width + size; x += size * 2) {
+      for (let y = 0; y < ctx.canvas.height + size; y += size * 1.5) {
+          for (let x = 0; x < ctx.canvas.width + size; x += size * 2) {
               // Top face
-              this.ctx.fillStyle = colors[0];
-              this.ctx.beginPath();
-              this.ctx.moveTo(x, y + halfSize);
-              this.ctx.lineTo(x + size, y);
-              this.ctx.lineTo(x + size * 2, y + halfSize);
-              this.ctx.lineTo(x + size, y + size);
-              this.ctx.closePath();
-              this.ctx.fill();
-
+              ctx.fillStyle = colors[0];
+              ctx.beginPath();
+              ctx.moveTo(x, y + halfSize);
+              ctx.lineTo(x + size, y);
+              ctx.lineTo(x + size * 2, y + halfSize);
+              ctx.lineTo(x + size, y + size);
+              ctx.closePath();
+              ctx.fill();
               // Left face
-              this.ctx.fillStyle = colors[1];
-              this.ctx.beginPath();
-              this.ctx.moveTo(x, y + halfSize);
-              this.ctx.lineTo(x + size, y + size);
-              this.ctx.lineTo(x + size, y + size * 1.5);
-              this.ctx.lineTo(x, y + size);
-              this.ctx.closePath();
-              this.ctx.fill();
-
+              ctx.fillStyle = colors[1];
+              ctx.beginPath();
+              ctx.moveTo(x, y + halfSize);
+              ctx.lineTo(x + size, y + size);
+              ctx.lineTo(x + size, y + size * 1.5);
+              ctx.lineTo(x, y + size);
+              ctx.closePath();
+              ctx.fill();
               // Right face
-              this.ctx.fillStyle = colors[2];
-              this.ctx.beginPath();
-              this.ctx.moveTo(x + size, y + size);
-              this.ctx.lineTo(x + size * 2, y + halfSize);
-              this.ctx.lineTo(x + size * 2, y + size);
-              this.ctx.lineTo(x + size, y + size * 1.5);
-              this.ctx.closePath();
-              this.ctx.fill();
+              ctx.fillStyle = colors[2];
+              ctx.beginPath();
+              ctx.moveTo(x + size, y + size);
+              ctx.lineTo(x + size * 2, y + halfSize);
+              ctx.lineTo(x + size * 2, y + size);
+              ctx.lineTo(x + size, y + size * 1.5);
+              ctx.closePath();
+              ctx.fill();
           }
       }
+  }
+
+  getPatternList() {
+      return ['zigzag', 'stripes', 'herringbone', 'chevron', 'alternatingSquares', 'checkerboard', 'isometricCubes'];
   }
 
   getPatternForShape(shape) {
@@ -181,29 +179,7 @@ export default class PatternMaker {
 
       // Draw the pattern on the new canvas
       const colors = this.paletteManager.getCurrentPalette().slice(0, 3);
-      switch (this.currentPattern) {
-          case 'zigzag':
-              this.drawZigzag(colors, patternCtx);
-              break;
-          case 'stripes':
-              this.drawStripes(colors, patternCtx);
-              break;
-          case 'herringbone':
-              this.drawHerringbone(colors, patternCtx);
-              break;
-          case 'chevron':
-              this.drawChevron(colors, patternCtx);
-              break;
-          case 'alternatingSquares':
-              this.drawAlternatingSquares(colors, patternCtx);
-              break;
-          case 'checkerboard':
-              this.drawCheckerboard(colors, patternCtx);
-              break;
-          case 'isometricCubes':
-              this.drawIsometricCubes(colors, patternCtx);
-              break;
-      }
+      this.drawPatternWithColors(patternCtx, colors, shape.pattern);
 
       return patternCtx.createPattern(patternCanvas, 'repeat');
   }

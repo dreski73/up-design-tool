@@ -203,7 +203,7 @@ ul {
 
 .palette-colors {
   display: flex;
-  flexx-direction: row;
+  flex-direction: row;
   margin-right: 10px;
 }
 
