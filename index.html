@@ -1,55 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Design Tool</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Tool</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="container">
-    <h1>UP DESIGN TOOL</h1>
-
-    <div id="designToolFrame" class="frame">
-      <div id="canvasAndButtons">
-        <canvas id="designCanvas" width="600" height="600" style="background-color: lightgray; background-image: linear-gradient(to right, gray 1px, transparent 1px), linear-gradient(to bottom, gray 1px, transparent 1px); background-size: 10px 10px;"></canvas>
-        <div id="toolButtons">
-          <button id="addSquare" class="small-button">Square</button>
-          <button id="addCircle" class="small-button">Circle</button>
-          <button id="addRadial" class="small-button">Radial</button>
-          <button id="shuffleColors" class="small-button">Shuffle</button>
-          <button id="resetCanvas" class="small-button">Reset</button>
-          <button id="saveDesign" class="small-button">Save</button>
+    <div class="container">
+        <div class="design-tool">
+            <canvas id="canvas" width="500" height="500"></canvas>
+            <div class="tool-buttons">
+                <button id="addSquare" class="tool-button">□</button>
+                <button id="addCircle" class="tool-button">○</button>
+                <button id="reset" class="tool-button">Reset</button>
+                <button id="save" class="tool-button">Save</button>
+                <button id="export" class="tool-button">Export</button>
+            </div>
         </div>
-      </div>
-      <div id="shapeLayerList"></div>
-    </div>
 
-    <div id="palette" class="frame">
-      <div style="display: flex; align-items: center;">
-        <div id="colors" class="sortable" style="flex-grow: 1;"></div>
-        <div id="addColorButton" class="special-button">+</div>
-        <div id="randomizeButton" class="special-button">R</div>
-      </div>
-    </div>
+        <div class="shape-layer-list">
+            <h2>Shape Layers</h2>
+            <ul id="shapeLayers"></ul>
+        </div>
 
-    <div id="savePaletteFrame" class="frame">
-      <input type="text" id="paletteName" placeholder="Palette Name">
-      <button id="savePalette">Save Palette</button>
-    </div>
+        <div class="current-palette">
+            <h2>Current Palette</h2>
+            <div id="currentPaletteColors"></div>
+            <button id="addColor" class="palette-button">+</button>
+            <button id="randomizePalette" class="palette-button">R</button>
+            <button id="savePalette" class="palette-button">S</button>
+        </div>
 
-    <div id="savedPalettesContainer" class="frame">
-      <h2>PALETTES</h2>
-      <div id="savedPalettes"></div>
-    </div>
+        <div class="palettes">
+            <h2>Palettes</h2>
+            <ul id="paletteList"></ul>
+        </div>
 
-    <div id="savedDesignsContainer" class="frame">
-      <h2>Saved Designs</h2>
-      <div id="savedDesigns"></div>
+        <div class="design-list">
+            <h2>Designs</h2>
+            <ul id="designList"></ul>
+        </div>
+
+        <div class="pattern-tool">
+            <h2>Pattern Tool</h2>
+            <canvas id="patternCanvas" width="150" height="100"></canvas>
+            <select id="patternSelect">
+                <option value="zigzag">Zigzag</option>
+                <option value="stripes">Stripes</option>
+                <option value="herringbone">Herringbone</option>
+                <option value="chevron">Chevron</option>
+                <option value="alternatingSquares">Alternating Squares</option>
+                <option value="checkerboard">Checkerboard</option>
+                <option value="isometricCubes">Isometric Cubes</option>
+            </select>
+        </div>
     </div>
-    <button id="updatePaletteButton">Update Palette</button>
-  </div>
-  <script src="main.js"></script>
-  <script src="paletteManager.js"></script> <!-- Include your palette management script -->
+    <script src="main.js"></script>
 </body>
 </html>
