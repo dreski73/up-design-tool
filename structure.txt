@@ -1,0 +1,23 @@
+
+├── dist
+│   ├── index.html
+│   ├── main.js
+│   └── styles.css
+├── node_modules
+│
+├── package-lock.json
+├── package.json
+├── src
+│   ├── app.js
+│   ├── colorPicker.js
+│   ├── designTool.js
+│   ├── index.html
+│   ├── index.js
+│   ├── paletteManager.js
+│   ├── patternMaker.js
+│   ├── styles.css
+│   └── utils.js
+├── updesigntool.code-workspace
+└── webpack.config.js
+
+2281 directories, 21710 files

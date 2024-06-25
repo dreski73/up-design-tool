@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UP DESIGN TOOL</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>UP DESIGN TOOL</h1>
+
+    <div id="toolbox">
+        <button class="shape-button" data-shape="square">Square</button>
+        <button class="shape-button" data-shape="circle">Circle</button>
+        <button class="shape-button" data-shape="radial">Radial</button>
+        <button id="shuffleButton">Shuffle</button>
+        <button id="resetButton">Reset</button>
+        <button id="saveButton">Save</button>
+        <button id="exportButton">Export</button>
+    </div>
+
+    <div id="colorPicker">
+        <input type="color" id="colorPickerInput" value="#000000">
+        <div id="colorDisplay"></div>
+        <button id="savePaletteButton">Save Palette</button>
+        <button id="exportPaletteButton">Export Palette</button>
+    </div>
+
+    <div id="paletteContainer">
+        <h2>PALETTES</h2>
+        <div id="paletteList"></div>
+    </div>
+
+    <div id="designContainer">
+        <h2>Saved Designs</h2>
+        <div id="designList"></div>
+    </div>
+
+    <canvas id="designCanvas" width="800" height="600"></canvas>
+
+    <button id="updatePaletteButton">Update Palette</button>
+
+    <script src="main.js"></script>
+</body>
+</html>

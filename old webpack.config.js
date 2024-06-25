@@ -9,6 +9,7 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
+    publicPath: '/', // Ensure this is set correctly
   },
   module: {
     rules: [
@@ -32,13 +33,14 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist'),
     },
+    compress: true,
     port: 9001,
     open: true,
     hot: true,
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './index.html',
+      template: path.resolve(__dirname, 'index.html'),
       filename: 'index.html',
     }),
     new MiniCssExtractPlugin({

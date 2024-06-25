@@ -1,293 +1,277 @@
-import { currentPalette } from './paletteManager'; // Import currentPalette
+import { generateRandomColor, clamp } from './utils.js';
+import PatternMaker from './patternMaker.js';
+import ShapeLayerList from './shapeLayerList.js';
 
-let eventListenersAdded = false;
-
-function updatePalette(newPaletteColors) {
-  currentPalette.length = 0;
-  newPaletteColors.forEach(color => currentPalette.push(color));
-  shapes.forEach((shape, index) => {
-    shape.color = currentPalette[index % currentPalette.length];
-    shape.radialColor = currentPalette[(index + 1) % currentPalette.length];
-  });
-  redrawShapes();
-  updateShapeLayerList();
-}
-
-export function initializeDesignTool() {
-  const designCanvas = document.getElementById('designCanvas');
-  const ctx = designCanvas.getContext('2d');
-  let shapes = [];
-  let colorIndex = 0;
-
-  function drawShape(shape) {
-    const { type, x, y, outerRadius, innerRadius, color, radials, radialColor, rotation } = shape;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rotation * Math.PI / 180);
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    if (type === 'circle') {
-      ctx.arc(0, 0, outerRadius, 0, 2 * Math.PI);
-      if (innerRadius > 0) {
-        ctx.moveTo(innerRadius, 0);
-        ctx.arc(0, 0, innerRadius, 0, 2 * Math.PI, true);
-      }
-    } else if (type === 'square') {
-      ctx.rect(-outerRadius, -outerRadius, 2 * outerRadius, 2 * outerRadius);
-      if (innerRadius > 0) {
-        ctx.moveTo(-innerRadius, -innerRadius);
-        ctx.rect(-innerRadius, -innerRadius, 2 * innerRadius, 2 * innerRadius);
-      }
-    } else if (type === 'radialOutline') {
-      if (radials === 0) {
-        ctx.arc(0, 0, outerRadius, 0, 2 * Math.PI);
-        if (innerRadius > 0) {
-          ctx.moveTo(innerRadius, 0);
-          ctx.arc(0, 0, innerRadius, 0, 2 * Math.PI, true);
-        }
-      } else {
-        for (let i = 0; i < radials; i++) {
-          const angle = (i * 2 * Math.PI) / radials;
-          const nextAngle = ((i + 1) * 2 * Math.PI) / radials;
-          const outerX = outerRadius * Math.cos(angle);
-          const outerY = outerRadius * Math.sin(angle);
-          const nextOuterX = outerRadius * Math.cos(nextAngle);
-          const nextOuterY = outerRadius * Math.sin(nextAngle);
-          const innerX = innerRadius * Math.cos(angle);
-          const innerY = innerRadius * Math.sin(angle);
-          const nextInnerX = innerRadius * Math.cos(nextAngle);
-          const nextInnerY = innerRadius * Math.sin(nextAngle);
-
-          ctx.beginPath();
-          ctx.moveTo(innerX, innerY);
-          ctx.lineTo(outerX, outerY);
-          ctx.arc(0, 0, outerRadius, angle, nextAngle);
-          ctx.lineTo(nextInnerX, nextInnerY);
-          ctx.arc(0, 0, innerRadius, nextAngle, angle, true);
-          ctx.closePath();
-          ctx.fillStyle = i % 2 === 0 ? color : radialColor;
-          ctx.fill();
-        }
-      }
-    }
-    ctx.fill('evenodd');
-    ctx.restore();
-  }
-
-  function addShape(type) {
-    const color = currentPalette[colorIndex % currentPalette.length];
-    const radialColor = currentPalette[(colorIndex + 1) % currentPalette.length];
-    colorIndex++;
-    const shapeCount = shapes.length;
-    const outerRadius = 500 * Math.pow(0.75, shapeCount);
-    const shape = {
-      type,
-      x: designCanvas.width / 2,
-      y: designCanvas.height / 2,
-      outerRadius: outerRadius,
-      innerRadius: 0,
-      color,
-      radials: 0,
-      radialColor,
-      rotation: 0
-    };
-    shapes.push(shape);
-    drawShape(shape);
-    addShapeLayer(shape);
-  }
-
-  function toggleRotation(shape) {
-    shape.rotation = shape.rotation === 45 ? 0 : 45;
-    redrawShapes();
-  }
-  function shuffleColors() {
-    shapes.forEach(shape => {
-      let newColor, newRadialColor;
-      do {
-        newColor = currentPalette[Math.floor(Math.random() * currentPalette.length)];
-      } while (newColor === shape.radialColor);
-      do {
-        newRadialColor = currentPalette[Math.floor(Math.random() * currentPalette.length)];
-      } while (newRadialColor === newColor);
-      shape.color = newColor;
-      shape.radialColor = newRadialColor;
-    });
-    redrawShapes();
-    updateShapeLayerList();
-  }
-
-  function addShapeLayer(shape) {
-    const shapeLayerList = document.getElementById('shapeLayerList');
-    const layer = document.createElement('div');
-    layer.classList.add('shape-layer');
-
-    const icon = document.createElement('span');
-    icon.textContent = shape.type === 'circle' ? '○' : (shape.type === 'square' ? '□' : '⨁');
-    icon.style.color = shape.color;
-    layer.appendChild(icon);
-
-    const colorSelect = document.createElement('select');
-    currentPalette.forEach(color => {
-      const option = document.createElement('option');
-      option.value = color;
-      option.textContent = color;
-      colorSelect.appendChild(option);
-    });
-    colorSelect.value = shape.color;
-    colorSelect.addEventListener('change', (e) => {
-      shape.color = e.target.value;
-      redrawShapes();
-    });
-    layer.appendChild(colorSelect);
-
-    const sliderContainer = document.createElement('div');
-    sliderContainer.classList.add('slider-container');
-
-    const innerRadiusSlider = document.createElement('input');
-    innerRadiusSlider.type = 'range';
-    innerRadiusSlider.min = 0;
-    innerRadiusSlider.max = 100;
-    innerRadiusSlider.value = shape.innerRadius / 5;
-    innerRadiusSlider.addEventListener('input', (e) => {
-      shape.innerRadius = e.target.value * 5;
-      redrawShapes();
-    });
-    sliderContainer.appendChild(innerRadiusSlider);
-
-    const outerRadiusSlider = document.createElement('input');
-    outerRadiusSlider.type = 'range';
-    outerRadiusSlider.min = 0;
-    outerRadiusSlider.max = 100;
-    outerRadiusSlider.value = shape.outerRadius / 5;
-    outerRadiusSlider.addEventListener('input', (e) => {
-      shape.outerRadius = e.target.value * 5;
-      redrawShapes();
-    });
-    sliderContainer.appendChild(outerRadiusSlider);
-
-    layer.appendChild(sliderContainer);
-
-    const radialsSlider = document.createElement('input');
-    radialsSlider.type = 'range';
-    radialsSlider.min = 0;
-    radialsSlider.max = 6;
-    radialsSlider.value = shape.radials;
-    radialsSlider.addEventListener('input', (e) => {
-      const values = [0, 4, 8, 16, 32, 64, 128];
-      shape.radials = values[e.target.value];
-      redrawShapes();
-    });
-    layer.appendChild(radialsSlider);
-
-    const radialColorSelect = document.createElement('select');
-    currentPalette.forEach(color => {
-      const option = document.createElement('option');
-      option.value = color;
-      option.textContent = color;
-      radialColorSelect.appendChild(option);
-    });
-    radialColorSelect.value = shape.radialColor;
-    radialColorSelect.addEventListener('change', (e) => {
-      shape.radialColor = e.target.value;
-      redrawShapes();
-    });
-    layer.appendChild(radialColorSelect);
-
-    if (shape.type === 'square') {
-      const rotateButton = document.createElement('button');
-      rotateButton.textContent = '45°';
-      rotateButton.addEventListener('click', () => toggleRotation(shape));
-      layer.appendChild(rotateButton);
+export default class DesignTool {
+    constructor(paletteManager, patternMaker) {
+        this.canvas = document.getElementById('canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.shapes = [];
+        this.gridSize = 10;
+        this.paletteManager = paletteManager;
+        this.patternMaker = patternMaker;
+        this.shapeLayerList = new ShapeLayerList(this, this.paletteManager, this.patternMaker);
+        this.designs = [];
     }
 
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'X';
-    deleteButton.style.fontSize = '10px'; // Decrease size of the X button
-    deleteButton.addEventListener('click', () => {
-      shapes = shapes.filter(s => s !== shape);
-      layer.remove();
-      redrawShapes();
-    });
-    layer.appendChild(deleteButton);
+    initializeCanvas() {
+        this.canvas.width = 600;
+        this.canvas.height = 600;
+        this.drawGrid();
+        this.drawFrame();
+    }
 
-    shapeLayerList.appendChild(layer);
-  }
+    drawGrid() {
+        this.ctx.strokeStyle = '#d3d3d3';
+        this.ctx.lineWidth = 1;
+        for (let x = 0; x <= this.canvas.width; x += this.gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x, this.canvas.height);
+            this.ctx.stroke();
+        }
+        for (let y = 0; y <= this.canvas.height; y += this.gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(this.canvas.width, y);
+            this.ctx.stroke();
+        }
+    }
 
-  function redrawShapes() {
-    ctx.clearRect(0, 0, designCanvas.width, designCanvas.height);
-    shapes.forEach(drawShape);
-  }
+    drawFrame() {
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
+    }
 
-  function resetCanvas() {
-    shapes = [];
-    ctx.clearRect(0, 0, designCanvas.width, designCanvas.height);
-    document.getElementById('shapeLayerList').innerHTML = '';
-  }
+    addShape(type) {
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        const maxSize = Math.min(this.canvas.width, this.canvas.height) * 0.9;
+        const colorId = this.paletteManager.getNextColorId();
 
-  function saveDesign() {
-    const savedDesigns = JSON.parse(localStorage.getItem('savedDesigns')) || [];
-    const design = {
-      name: `Design ${savedDesigns.length + 1}`,
-      shapes: shapes.map(shape => ({ ...shape }))
-    };
-    savedDesigns.push(design);
-    localStorage.setItem('savedDesigns', JSON.stringify(savedDesigns));
-    updateSavedDesigns();
-  }
+        // Calculate the size decrement based on the number of existing shapes
+        const sizeDecrement = 0.1; // 10% decrease for each new shape
+        const shapeCount = this.shapes.length;
+        const outerRadius = (maxSize / 2) * Math.max(0.3, 1 - (shapeCount * sizeDecrement));
 
-  function loadDesign(design) {
-    shapes = design.shapes.map(shape => ({ ...shape }));
-    redrawShapes();
-    updateShapeLayerList();
-  }
+        const shape = {
+            type,
+            x: centerX,
+            y: centerY,
+            outerRadius: outerRadius,
+            innerRadius: 0,
+            colorId,
+            pattern: null,
+            patternScale: 1,
+            rotation: 0,
+            radialLines: type === 'circle' ? 0 : undefined,
+            secondColorId: type === 'circle' ? this.paletteManager.getNextColorId() : undefined
+        };
 
-  function updateSavedDesigns() {
-    const savedDesignsContainer = document.getElementById('savedDesigns');
-    savedDesignsContainer.innerHTML = '';
-    const savedDesigns = JSON.parse(localStorage.getItem('savedDesigns')) || [];
-    savedDesigns.forEach((design, index) => {
-      const designElement = document.createElement('div');
-      designElement.classList.add('saved-design');
-      designElement.textContent = design.name;
+        this.shapes.unshift(shape);  // Add new shape to the beginning of the array
+        this.shapeLayerList.addLayer(shape);
+        this.drawShapes();
+        this.dispatchEvent(new CustomEvent('shapesChanged'));
+    }
 
-      const loadButton = document.createElement('button');
-      loadButton.textContent = 'Load';
-      loadButton.addEventListener('click', () => loadDesign(design));
-      designElement.appendChild(loadButton);
+    drawShapes() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.drawGrid();
+        this.drawFrame();
 
-      const deleteButton = document.createElement('button');
-      deleteButton.textContent = 'X';
-      deleteButton.addEventListener('click', () => {
-        savedDesigns.splice(index, 1);
-        localStorage.setItem('savedDesigns', JSON.stringify(savedDesigns));
-        updateSavedDesigns();
-      });
-      designElement.appendChild(deleteButton);
+        // Iterate through the shapes array in reverse order
+        for (let i = this.shapes.length - 1; i >= 0; i--) {
+            const shape = this.shapes[i];
+            this.ctx.save();
+            this.ctx.translate(shape.x, shape.y);
+            this.ctx.rotate(shape.rotation * Math.PI / 180);
+            if (shape.type === 'square') {
+                this.drawSquareAnnulus(shape);
+            } else if (shape.type === 'circle') {
+                this.drawCircularAnnulus(shape);
+            }
+            this.ctx.restore();
+        }
+    }
 
-      savedDesignsContainer.appendChild(designElement);
-    });
-  }
+    drawSquareAnnulus(shape) {
+        const outerSize = shape.outerRadius * 2;
+        const innerSize = shape.innerRadius * 2;
+        this.ctx.beginPath();
+        this.ctx.rect(-outerSize / 2, -outerSize / 2, outerSize, outerSize);
+        this.ctx.rect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
+        this.ctx.closePath();
+        if (shape.pattern) {
+            const pattern = this.patternMaker.getPatternForShape(shape);
+            this.ctx.fillStyle = pattern;
+        } else {
+            this.ctx.fillStyle = this.paletteManager.getColorById(shape.colorId);
+        }
+        this.ctx.fill('evenodd');
+    }
 
-  function updateShapeLayerList() {
-    const shapeLayerList = document.getElementById('shapeLayerList');
-    shapeLayerList.innerHTML = '';
-    shapes.forEach(shape => addShapeLayer(shape));
-  }
+    drawCircularAnnulus(shape) {
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, shape.outerRadius, 0, Math.PI * 2);
+        this.ctx.arc(0, 0, shape.innerRadius, 0, Math.PI * 2, true);
+        this.ctx.closePath();
+        if (shape.pattern) {
+            const pattern = this.patternMaker.getPatternForShape(shape);
+            this.ctx.fillStyle = pattern;
+            this.ctx.fill();
+        } else if (shape.radialLines > 0) {
+            this.drawRadialLines(shape);
+        } else {
+            this.ctx.fillStyle = this.paletteManager.getColorById(shape.colorId);
+            this.ctx.fill();
+        }
+    }
 
-  if (!eventListenersAdded) {
-    document.getElementById('addSquare').addEventListener('click', () => addShape('square'));
-    document.getElementById('addCircle').addEventListener('click', () => addShape('circle'));
-    document.getElementById('addRadial').addEventListener('click', () => addShape('radialOutline'));
-    document.getElementById('shuffleColors').addEventListener('click', shuffleColors);
-    document.getElementById('resetCanvas').addEventListener('click', resetCanvas);
-    document.getElementById('saveDesign').addEventListener('click', saveDesign);
-    eventListenersAdded = true;
-  }
+    drawRadialLines(shape) {
+        const angleStep = (Math.PI * 2) / shape.radialLines;
+        for (let i = 0; i < shape.radialLines; i++) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, 0);
+            this.ctx.arc(0, 0, shape.outerRadius, i * angleStep, (i + 1) * angleStep);
+            this.ctx.closePath();
+            this.ctx.fillStyle = i % 2 === 0 ?
+                this.paletteManager.getColorById(shape.colorId) :
+                this.paletteManager.getColorById(shape.secondColorId);
+            this.ctx.fill();
+        }
+    }
 
-  updateSavedDesigns();
-  console.log('Design tool initialized');
-}
+    updateShapeColor(index, colorId) {
+        if (index >= 0 && index < this.shapes.length) {
+            this.shapes[index].colorId = colorId;
+            this.drawShapes();
+        }
+    }
 
-export function changePalette(newPaletteColors) {
-  updatePalette(newPaletteColors);
+    updateShapeSize(index, innerRadiusPercent, outerRadiusPercent) {
+        if (index >= 0 && index < this.shapes.length) {
+            const maxRadius = Math.min(this.canvas.width, this.canvas.height) / 2;
+            this.shapes[index].innerRadius = (innerRadiusPercent / 100) * maxRadius;
+            this.shapes[index].outerRadius = (outerRadiusPercent / 100) * maxRadius;
+            this.drawShapes();
+        }
+    }
+
+    rotateShape(index) {
+        if (index >= 0 && index < this.shapes.length && this.shapes[index].type === 'square') {
+            this.shapes[index].rotation = (this.shapes[index].rotation + 45) % 360;
+            this.drawShapes();
+        }
+    }
+
+    updateRadialLines(index, lines) {
+        if (index >= 0 && index < this.shapes.length && this.shapes[index].type === 'circle') {
+            this.shapes[index].radialLines = lines;
+            this.drawShapes();
+        }
+    }
+
+    deleteShape(index) {
+        if (index >= 0 && index < this.shapes.length) {
+            this.shapes.splice(index, 1);
+            this.shapeLayerList.removeLayer(index);
+            this.drawShapes();
+            this.dispatchEvent(new CustomEvent('shapesChanged'));
+        }
+    }
+
+    moveShapeLayer(oldIndex, newIndex) {
+        if (oldIndex >= 0 && oldIndex < this.shapes.length && newIndex >= 0 && newIndex < this.shapes.length) {
+            const [shape] = this.shapes.splice(oldIndex, 1);
+            this.shapes.splice(newIndex, 0, shape);
+            this.shapeLayerList.updateLayers();
+            this.drawShapes();
+        }
+    }
+
+    applyPatternToShape(shapeIndex, patternName, scale = 1) {
+        if (shapeIndex >= 0 && shapeIndex < this.shapes.length) {
+            const shape = this.shapes[shapeIndex];
+            shape.pattern = patternName;
+            shape.patternScale = scale;
+            this.drawShapes();
+        }
+    }
+
+    resetCanvas() {
+        this.shapes = [];
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.drawGrid();
+        this.drawFrame();
+        this.shapeLayerList.updateLayers();
+        this.dispatchEvent(new CustomEvent('shapesChanged'));
+    }
+
+    saveDesign() {
+        const designName = `My Design ${this.designs.length + 1}`;
+        const design = {
+            name: designName,
+            shapes: JSON.parse(JSON.stringify(this.shapes)),
+            palette: this.paletteManager.getCurrentPalette()
+        };
+        this.designs.push(design);
+        this.dispatchEvent(new CustomEvent('designListChanged'));
+    }
+
+    loadDesign(index) {
+        if (index >= 0 && index < this.designs.length) {
+            const design = this.designs[index];
+            this.shapes = JSON.parse(JSON.stringify(design.shapes));
+            this.paletteManager.setCurrentPalette(design.palette);
+            this.drawShapes();
+            this.shapeLayerList.updateLayers();
+            this.dispatchEvent(new CustomEvent('shapesChanged'));
+        }
+    }
+
+    deleteDesign(index) {
+        if (index >= 0 && index < this.designs.length) {
+            this.designs.splice(index, 1);
+            this.dispatchEvent(new CustomEvent('designListChanged'));
+        }
+    }
+
+    exportDesign() {
+        // Implement PDF export functionality
+        console.log('Export functionality to be implemented');
+    }
+
+    updateShapeColors() {
+        this.drawShapes();
+    }
+
+    updateShapeSecondColor(index, colorId) {
+        if (index >= 0 && index < this.shapes.length && this.shapes[index].type === 'circle') {
+            this.shapes[index].secondColorId = colorId;
+            this.drawShapes();
+        }
+    }
+
+    toggleShapeLock(index) {
+        if (index >= 0 && index < this.shapes.length) {
+            this.shapes[index].locked = !this.shapes[index].locked;
+            this.dispatchEvent(new CustomEvent('shapesChanged'));
+        }
+    }
+
+    updateShapePatternScale(index, scale) {
+        if (index >= 0 && index < this.shapes.length && this.shapes[index].pattern) {
+            this.shapes[index].patternScale = scale;
+            this.drawShapes();
+        }
+    }
+
+    addEventListener(event, callback) {
+        this.canvas.addEventListener(event, callback);
+    }
+
+    dispatchEvent(event) {
+        this.canvas.dispatchEvent(event);
+    }
 }
