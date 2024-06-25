@@ -52,11 +52,23 @@ body {
 
 .shape-layer {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   background-color: #ffffff;
   border: 1px solid #d3d3d3;
   margin-bottom: 5px;
   padding: 5px;
+}
+
+.layer-controls {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.layer-buttons {
+  display: flex;
+  align-items: center;
 }
 
 .shape-layer select,
@@ -122,7 +134,7 @@ ul {
 
 .current-palette {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -160,13 +172,18 @@ ul {
   right: 2px;
 }
 
+.palette-buttons {
+  display: flex;
+  align-items: center;
+}
+
 .palette-button {
   background-color: transparent;
   border: 1px solid #aaaaaa;
   color: black;
-  width: 60px;
-  height: 60px;
-  margin: 5px;
+  width: 40px;
+  height: 40px;
+  margin-left: 5px;
   cursor: pointer;
   font-size: 16px;
 }
@@ -207,12 +224,6 @@ ul {
   margin-right: 10px;
 }
 
-.color-box.small {
-  width: 20px;
-  height: 20px;
-  margin-right: 2px;
-}
-
 .palette-buttons {
   display: flex;
   gap: 5px;
@@ -223,31 +234,39 @@ ul {
   font-size: 12px;
 }
 
+.shape-layer .letter-select {
+  width: 60px;
+}
+
+.shape-layer .letter-size {
+  width: 100px;
+}
+
 @media (max-width: 600px) {
   .container {
-    padding: 10px;
+      padding: 10px;
   }
 
   .design-tool {
-    flex-direction: column;
+      flex-direction: column;
   }
 
   .tool-buttons {
-    flex-direction: row;
-    margin-left: 0;
-    margin-top: 10px;
+      flex-direction: row;
+      margin-left: 0;
+      margin-top: 10px;
   }
 
   .tool-button {
-    margin: 0 5px;
+      margin: 0 5px;
   }
 
   .palette-item {
-    flex-direction: column;
-    align-items: flex-start;
+      flex-direction: column;
+      align-items: flex-start;
   }
 
   .palette-colors {
-    margin-bottom: 5px;
+      margin-bottom: 5px;
   }
 }

@@ -26,6 +26,7 @@ class App {
         // Design Tool buttons
         document.getElementById('addSquare').addEventListener('click', () => this.designTool.addShape('square'));
         document.getElementById('addCircle').addEventListener('click', () => this.designTool.addShape('circle'));
+        document.getElementById('addLetter').addEventListener('click', () => this.designTool.addLetterShape());
         document.getElementById('reset').addEventListener('click', () => this.designTool.resetCanvas());
         document.getElementById('save').addEventListener('click', () => this.designTool.saveDesign());
         document.getElementById('export').addEventListener('click', () => this.designTool.exportDesign());

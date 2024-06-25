@@ -8,7 +8,10 @@ export default class PatternMaker {
   }
 
   getPatternForShape(shape, ctx) {
-      const colors = this.paletteManager.getCurrentPalette().slice(0, 2);
+      const colors = [
+          this.paletteManager.getColorById(shape.colorId),
+          this.paletteManager.getColorById(shape.secondColorId || shape.colorId)
+      ];
       const patternSize = 62 * shape.patternScale;
 
       switch (shape.pattern) {

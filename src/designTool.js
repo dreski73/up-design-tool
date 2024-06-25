@@ -53,19 +53,36 @@ export default class DesignTool {
         const shapeCount = this.shapes.length;
         const outerRadius = (maxSize / 2) * Math.max(0.3, 1 - (shapeCount * sizeDecrement));
 
-        const shape = {
-            type,
-            x: centerX,
-            y: centerY,
-            outerRadius: outerRadius,
-            innerRadius: 0,
-            colorId,
-            pattern: null,
-            patternScale: 1,
-            rotation: 0,
-            radialLines: type === 'circle' ? 0 : undefined,
-            secondColorId: type === 'circle' ? this.paletteManager.getNextColorId() : undefined
-        };
+        let shape;
+        if (type === 'letter') {
+            this.addLetterShape();
+            shape = {
+                type,
+                letter: 'A',
+                x: centerX,
+                y: centerY,
+                size: outerRadius,
+                colorId,
+                pattern: null,
+                patternScale: 1,
+                rotation: 0
+            };
+        } else {
+            shape = {
+                type,
+                x: centerX,
+                y: centerY,
+                outerRadius: outerRadius,
+                innerRadius: 0,
+                colorId,
+                pattern: null,
+                patternScale: 1,
+                rotation: 0,
+                radialLines: type === 'circle' ? 0 : undefined,
+                secondColorId: type === 'circle' ? this.paletteManager.getNextColorId() : undefined
+            };
+        }
+
         this.shapes.unshift(shape);
         this.shapeLayerList.addLayer(shape);
         this.drawShapes();
@@ -85,6 +102,8 @@ export default class DesignTool {
                 this.drawSquareAnnulus(shape);
             } else if (shape.type === 'circle') {
                 this.drawCircularAnnulus(shape);
+            } else if (shape.type === 'letter') {
+                this.drawLetterShape(shape);
             }
             this.ctx.restore();
         }
@@ -113,7 +132,6 @@ export default class DesignTool {
     drawCircularAnnulus(shape) {
         this.ctx.beginPath();
         this.ctx.arc(0, 0, shape.outerRadius, 0, Math.PI * 2);
-        this.ctx.arc(0, 0, shape.innerRadius, 0, Math.PI * 2, true);
         this.ctx.closePath();
         if (shape.pattern) {
             const pattern = this.patternMaker.getPatternForShape(shape, this.ctx);
@@ -130,6 +148,53 @@ export default class DesignTool {
             this.ctx.fillStyle = this.paletteManager.getColorById(shape.colorId);
             this.ctx.fill();
         }
+
+        // Draw the inner circle to create the annulus effect
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, shape.innerRadius, 0, Math.PI * 2);
+        this.ctx.closePath();
+        this.ctx.fillStyle = 'white'; // Or any background color
+        this.ctx.fill();
+    }
+    addLetterShape(letter = 'A') {
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        const maxSize = Math.min(this.canvas.width, this.canvas.height) * 0.9;
+        const colorId = this.paletteManager.getNextColorId();
+        const shape = {
+            type: 'letter',
+            letter: letter,
+            x: centerX,
+            y: centerY,
+            size: maxSize / 2,
+            colorId,
+            pattern: null,
+            patternScale: 1,
+            rotation: 0
+        };
+        this.shapes.unshift(shape);
+        this.shapeLayerList.addLayer(shape);
+        this.drawShapes();
+        this.dispatchEvent(new CustomEvent('shapesChanged'));
+    }
+
+    drawLetterShape(shape) {
+        this.ctx.font = `${shape.size}px Impact`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+
+        if (shape.pattern) {
+            const pattern = this.patternMaker.getPatternForShape(shape, this.ctx);
+            if (pattern) {
+                this.ctx.fillStyle = pattern;
+            } else {
+                this.ctx.fillStyle = this.paletteManager.getColorById(shape.colorId);
+            }
+        } else {
+            this.ctx.fillStyle = this.paletteManager.getColorById(shape.colorId);
+        }
+
+        this.ctx.fillText(shape.letter, 0, 0);
     }
 
     drawRadialLines(shape) {
@@ -156,14 +221,25 @@ export default class DesignTool {
     updateShapeSize(index, innerRadiusPercent, outerRadiusPercent) {
         if (index >= 0 && index < this.shapes.length) {
             const maxRadius = Math.min(this.canvas.width, this.canvas.height) / 2;
-            this.shapes[index].innerRadius = (innerRadiusPercent / 100) * maxRadius;
-            this.shapes[index].outerRadius = (outerRadiusPercent / 100) * maxRadius;
+            if (this.shapes[index].type === 'letter') {
+                this.shapes[index].size = (outerRadiusPercent / 100) * maxRadius * 2;
+            } else {
+                this.shapes[index].innerRadius = (innerRadiusPercent / 100) * maxRadius;
+                this.shapes[index].outerRadius = (outerRadiusPercent / 100) * maxRadius;
+            }
+            this.drawShapes();
+        }
+    }
+
+    updateLetterShape(index, letter) {
+        if (index >= 0 && index < this.shapes.length && this.shapes[index].type === 'letter') {
+            this.shapes[index].letter = letter;
             this.drawShapes();
         }
     }
 
     rotateShape(index) {
-        if (index >= 0 && index < this.shapes.length && this.shapes[index].type === 'square') {
+        if (index >= 0 && index < this.shapes.length) {
             this.shapes[index].rotation = (this.shapes[index].rotation + 45) % 360;
             this.drawShapes();
         }
@@ -199,6 +275,17 @@ export default class DesignTool {
             const shape = this.shapes[shapeIndex];
             shape.pattern = patternName;
             shape.patternScale = scale;
+            if (shape.type !== 'circle' && !shape.secondColorId) {
+                shape.secondColorId = shape.colorId;
+            }
+            this.drawShapes();
+        }
+    }
+
+    removePatternFromShape(index) {
+        if (index >= 0 && index < this.shapes.length) {
+            this.shapes[index].pattern = null;
+            this.shapes[index].patternScale = 1;
             this.drawShapes();
         }
     }
