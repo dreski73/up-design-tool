@@ -98,8 +98,12 @@ export default class DesignTool {
         this.ctx.rect(-innerSize / 2, -innerSize / 2, innerSize, innerSize);
         this.ctx.closePath();
         if (shape.pattern) {
-            const pattern = this.patternMaker.getPatternForShape(shape);
-            this.ctx.fillStyle = pattern;
+            const pattern = this.patternMaker.getPatternForShape(shape, this.ctx);
+            if (pattern) {
+                this.ctx.fillStyle = pattern;
+            } else {
+                this.ctx.fillStyle = this.paletteManager.getColorById(shape.colorId);
+            }
         } else {
             this.ctx.fillStyle = this.paletteManager.getColorById(shape.colorId);
         }
@@ -112,9 +116,14 @@ export default class DesignTool {
         this.ctx.arc(0, 0, shape.innerRadius, 0, Math.PI * 2, true);
         this.ctx.closePath();
         if (shape.pattern) {
-            const pattern = this.patternMaker.getPatternForShape(shape);
-            this.ctx.fillStyle = pattern;
-            this.ctx.fill();
+            const pattern = this.patternMaker.getPatternForShape(shape, this.ctx);
+            if (pattern) {
+                this.ctx.fillStyle = pattern;
+                this.ctx.fill();
+            } else {
+                this.ctx.fillStyle = this.paletteManager.getColorById(shape.colorId);
+                this.ctx.fill();
+            }
         } else if (shape.radialLines > 0) {
             this.drawRadialLines(shape);
         } else {

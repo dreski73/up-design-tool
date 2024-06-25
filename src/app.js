@@ -42,7 +42,7 @@ class App {
         this.paletteManager.addEventListener('paletteChanged', () => {
             this.designTool.updateShapeColors();
             this.shapeLayerList.updateLayers();
-            this.patternMaker.updatePatternColors();
+            this.designTool.updateShapeColors();
         });
 
         // Event listener for shape changes
